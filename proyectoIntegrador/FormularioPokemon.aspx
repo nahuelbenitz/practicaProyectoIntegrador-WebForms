@@ -32,6 +32,7 @@
             <asp:Button Text="Desactivar" ID="btnDesactivar" CssClass="btn btn-warning" OnClick="btnDesactivar_Click" runat="server" />
 
         </div>
+        <%-- divido la pantalla en 2 columnas para que quede parejo visualmente --%>
         <div class="col-6">
             <div class="mb-3">
                 <label for="txtDescripcion" class="form-label">Descripción:</label>

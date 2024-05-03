@@ -4,17 +4,23 @@ using System.Linq;
 using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
+using dominio;
 using negocio;
 
 namespace proyectoIntegrador
 {
     public partial class ListadoPokemons : System.Web.UI.Page
     {
+        public bool FiltroAvanzado { get; set; }
         protected void Page_Load(object sender, EventArgs e)
         {
+            FiltroAvanzado = chkAvanzado.Checked;
+
             PokemonNegocio negocio = new PokemonNegocio();
-            dgvPokemons.DataSource = negocio.listarConSP();
+            Session.Add("ListaPokemons", negocio.listarConSP());
+            dgvPokemons.DataSource = Session["ListaPokemons"];
             dgvPokemons.DataBind();
+
         }
 
         protected void dgvPokemons_SelectedIndexChanged(object sender, EventArgs e)
@@ -27,6 +33,58 @@ namespace proyectoIntegrador
         {
             dgvPokemons.PageIndex = e.NewPageIndex;
             dgvPokemons.DataBind();
+        }
+
+        protected void txtFiltro_TextChanged(object sender, EventArgs e)
+        {
+            List<Pokemon> lista = (List<Pokemon>)Session["ListaPokemons"];
+
+            List<Pokemon> listaFiltrada = lista.FindAll(x => x.Nombre.ToUpper().Contains(txtFiltro.Text.ToUpper()));
+
+            dgvPokemons.DataSource = listaFiltrada;
+            dgvPokemons.DataBind();
+        }
+
+        protected void chkAvanzado_CheckedChanged(object sender, EventArgs e)
+        {
+            FiltroAvanzado = chkAvanzado.Checked;
+            txtFiltro.Enabled = !FiltroAvanzado;
+        }
+
+        protected void ddlCampo_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ddlCriterio.Items.Clear();
+            if (ddlCampo.SelectedItem.ToString() == "Número")
+            {
+                ddlCriterio.Items.Add("igual a");
+                ddlCriterio.Items.Add("Mayor a");
+                ddlCriterio.Items.Add("Menor a");
+            }
+            else
+            {
+                ddlCriterio.Items.Add("Contiene");
+                ddlCriterio.Items.Add("Comienza con");
+                ddlCriterio.Items.Add("Termina con");
+            }
+        }
+
+        protected void btnBuscar_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                PokemonNegocio negocio = new PokemonNegocio();
+                dgvPokemons.DataSource = negocio.filtrar(ddlCampo.SelectedItem.ToString(),
+                                                            ddlCriterio.SelectedItem.ToString(),
+                                                            txtFiltroAvanzado.Text,
+                                                            ddlEstado.SelectedItem.ToString());
+                dgvPokemons.DataBind();
+            }
+            catch (Exception ex)
+            {
+                Session.Add("error", ex);
+                throw;
+                //Redirección pantalla de error
+            }
         }
     }
 }
